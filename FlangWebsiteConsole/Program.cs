@@ -7,6 +7,8 @@ using System.Linq;
 using FriedLang.NativeLibraries;
 using System.IO;
 using Newtonsoft.Json;
+using static System.Net.Mime.MediaTypeNames;
+using System.Reflection;
 
 namespace FlangWebsiteConsole
 {
@@ -63,6 +65,17 @@ namespace FlangWebsiteConsole
     {
         static void Main(string[] args)
         {
+            //args = new[]
+            //{
+            //    "--C:/xampp/htdocs/weblessen/leerjaar3/flangApi/index.flang?test=4&csdebug",
+            //    "--aW5kZXguZmxhbmc/dGVzdD00JmNzZGVidWc=",
+            //    "--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXguZmxhbmc/dGVzdD00JmNzZGVidWc=",
+            //    "--",
+            //    "--eyJ0ZXN0IjoiNCIsImNzZGVidWciOiIifQ==",
+            //    "--W10=",
+            //};
+
+
             try
             {
                 //Send("executed<br>");
@@ -87,6 +100,9 @@ namespace FlangWebsiteConsole
                     return;
                 }
                 string filePath = args[0].Substring(2);
+
+                filePath = filePath.Split('?').First();
+
                 string page = Base64Decode(args[1].Substring(2));
                 string url = Base64Decode(args[2].Substring(2));
                 string content = Base64Decode(args[3].Substring(2));
