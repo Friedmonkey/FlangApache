@@ -67,7 +67,7 @@ namespace FlangWebsiteConsole
         {
             //args = new[]
             //{
-            //    "--C:/xampp/htdocs/weblessen/leerjaar3/flangApi/index.flang?test=4&csdebug",
+            //    "--C:/xampp/htdocs/weblessen/leerjaar3/flangApi/index.flang?test=4",
             //    "--aW5kZXguZmxhbmc/dGVzdD00JmNzZGVidWc=",
             //    "--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXguZmxhbmc/dGVzdD00JmNzZGVidWc=",
             //    "--",
@@ -118,6 +118,8 @@ namespace FlangWebsiteConsole
                     Send(GenerateError("File not found", $"{filePath} not found"));
                     return;
                 }
+                //file found, set the working directory for any code that might use it
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
                 string code = File.ReadAllText(filePath);
                 string output = ParseFlang(code, page, url, content, GET, POST);
                 Send(output);
