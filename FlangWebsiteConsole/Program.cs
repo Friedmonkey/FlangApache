@@ -65,15 +65,17 @@ namespace FlangWebsiteConsole
     {
         static void Main(string[] args)
         {
-            //args = new[]
-            //{
-            //    "--C:/xampp/htdocs/weblessen/leerjaar3/flangApi/index.flang?test=4",
-            //    "--aW5kZXguZmxhbmc/dGVzdD00JmNzZGVidWc=",
-            //    "--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXguZmxhbmc/dGVzdD00JmNzZGVidWc=",
-            //    "--",
-            //    "--eyJ0ZXN0IjoiNCIsImNzZGVidWciOiIifQ==",
-            //    "--W10=",
-            //};
+#if DEBUG
+            args = new[]
+            {
+                "--C:/xampp/htdocs/weblessen/leerjaar3/flangApi/index2.flang?csdebug=true",
+                "--aW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
+                "--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
+                "--",
+                "--eyJjc2RlYnVnIjoidHJ1ZSJ9",
+                "--W10=",
+            };
+#endif
 
 
             try
@@ -158,6 +160,11 @@ namespace FlangWebsiteConsole
 
             if (outputDict is null)
             {
+                if (FLang.FromFriedVar((FValue)output) is string str && str.StartsWith("$clientEvent$"))
+                {
+                    FinalText = str.Substring("$clientEvent$".Length);
+                    return FinalText;
+                }
                 return GenerateError("An Error occured",Flang.LastError);
             }
             else
