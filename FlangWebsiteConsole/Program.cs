@@ -68,12 +68,12 @@ namespace FlangWebsiteConsole
 #if DEBUG
             args = new[]
             {
-                "--C:/xampp/htdocs/weblessen/leerjaar3/flangApi/index2.flang?csdebug=true",
-                "--aW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
-                "--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
-                "--",
-                "--eyJjc2RlYnVnIjoidHJ1ZSJ9",
-                "--W10=",
+"--C:/xampp/htdocs/weblessen/leerjaar3/flangApi/index2.flang?url=lol&clientEvent=readFile&csdebug=true",
+"--aW5kZXgyLmZsYW5nP3VybD1sb2wmY2xpZW50RXZlbnQ9cmVhZEZpbGUmY3NkZWJ1Zz10cnVl",
+"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXgyLmZsYW5nP3VybD1sb2wmY2xpZW50RXZlbnQ9cmVhZEZpbGUmY3NkZWJ1Zz10cnVl",
+"--",
+"--eyJ1cmwiOiJsb2wiLCJjbGllbnRFdmVudCI6InJlYWRGaWxlIiwiY3NkZWJ1ZyI6InRydWUifQ==",
+"--W10=",
             };
 #endif
 
@@ -90,7 +90,7 @@ namespace FlangWebsiteConsole
                     text += " - ";
                     text += args[0].Substring(2);
                     text += "<br>";
-                    foreach (var item in args.Skip(1))
+                    foreach (var item in args)
                     {
                         text += " - ";
                         text += Base64Decode(item.Substring(2));
@@ -101,7 +101,7 @@ namespace FlangWebsiteConsole
                     Send(GenerateError("Argument error", text));
                     return;
                 }
-                string filePath = args[0].Substring(2);
+                string filePath = Base64Decode(args[0].Substring(2));
 
                 filePath = filePath.Split('?').First();
 

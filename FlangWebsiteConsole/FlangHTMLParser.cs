@@ -136,6 +136,13 @@ output += $$"""
                 this.Analizable = output.ToList();
                 this.Position = 0;
             }
+            else
+            {
+                if (input.Contains("<(clientflang"))
+                {
+                    throw new System.Exception("\"<(clientflang\" code entry has been found, but clientFlang isnt enabled, add \"#clientFlang\" to the top of your file to enable.");
+                }
+            }
 
             while (Current != '\0')
             {
