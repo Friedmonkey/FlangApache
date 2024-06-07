@@ -217,6 +217,7 @@ namespace FlangWebsiteConsole
         }
         private static string GetAppVersion()
         {
+            return "0.0.0.0";
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
             return fvi.FileVersion;
