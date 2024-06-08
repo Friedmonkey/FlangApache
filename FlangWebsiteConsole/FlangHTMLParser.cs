@@ -33,7 +33,7 @@ namespace FlangWebsiteConsole
         List<Macro> DefaultMacros = new List<Macro>()
         {
             new Macro("get","document.getElementById({0})","$id"),
-            new Macro("set","innerHtml = {0}","$text"),
+            new Macro("set","innerText = {0}","$text"),
             new Macro("setText","{0}.innerText = {1}","$element", "$text"),
 
             new Macro("bind","id=\"BIND_{0}\"","$varible"),
@@ -218,7 +218,8 @@ clientEventHandeler += $$"""
                     foreach (var (type, name) in func.arguments)
                     {
 output += $$"""
-                        var% {{name}} = POST["GENERATED_{{name}}"];
+                        return POST;
+                        {{type}} {{name}} = <{{type}}>POST["GENERATED_{{name}}"];
 """;
 
                     }
