@@ -68,11 +68,11 @@ namespace FlangWebsiteConsole
 #if DEBUG
             args = new[]
             {
-"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
-"--aW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
-"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
+"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXg0LmZsYW5nP2NzRGVidWc9dHJ1ZQ==",
+"--aW5kZXg0LmZsYW5nP2NzRGVidWc9dHJ1ZQ==",
+"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXg0LmZsYW5nP2NzRGVidWc9dHJ1ZQ==",
 "--",
-"--eyJjc2RlYnVnIjoidHJ1ZSJ9",
+"--eyJjc0RlYnVnIjoidHJ1ZSJ9",
 "--W10=",
             };
 #endif

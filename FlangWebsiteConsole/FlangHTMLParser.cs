@@ -23,6 +23,11 @@ namespace FlangWebsiteConsole
             public List<string> arguments;
             public string body;
         }
+        public struct ClientFunction
+        {
+            public string name;
+            public List<(string, string)> arguments;
+        }
         //#define get($id) document.getElementById($id)
         //#define setText($element, $text) $element.innerText = $text
         List<Macro> DefaultMacros = new List<Macro>()
@@ -43,7 +48,7 @@ namespace FlangWebsiteConsole
 
             bool isClientFlang = false;
             string FinalClientCode = string.Empty;
-            List<string> clientFunctions = new List<string>();
+            List<ClientFunction> clientFunctions = new List<ClientFunction>();
 
             while (Current != '\0')
             {
@@ -53,6 +58,60 @@ namespace FlangWebsiteConsole
                     {
                         isClientFlang = false;
                         continue;
+                    }
+                    else if (Find(" clientFlang "))
+                    {
+                        FinalClientCode += " ";
+                        var functionName = "";
+                        while (Current != '(')
+                        {
+                            functionName += Current;
+                            FinalClientCode += Current;
+                            Position++;
+                        }
+
+                        FinalClientCode += Current;
+                        Position++; //skip (
+
+                        ClientFunction function = new ClientFunction();
+                        function.name = functionName;
+                        function.arguments = new List<(string, string)>();
+
+                        while (Current != ')')
+                        {
+                            string type = "";
+                            string argument = "";
+                            bool isArgName = false;
+                            while (Current != ',' && Current != ')')
+                            {
+                                if (isArgName)
+                                {
+                                    argument += Current;
+                                    FinalClientCode += Current;
+                                    Position++;
+                                }
+                                else
+                                {
+                                    if (Current == ' ')
+                                    {
+                                        isArgName = true;
+                                        FinalClientCode += Current;
+                                        Position++;
+                                        continue;
+                                    }
+                                    type += Current;
+                                    FinalClientCode += Current;
+                                    Position++;
+                                }
+                            }
+                            function.arguments.Add((type, argument));
+                            if (Current == ')') break;
+                            Position++; //skip ,
+                        }
+                        FinalClientCode += Current;
+                        Position++; //skip )
+
+                        clientFunctions.Add(function);
                     }
                     else
                     {
@@ -79,10 +138,10 @@ namespace FlangWebsiteConsole
                         }
                         Position++;
                         Position++;
-                        FinalText += "GENERATED_JS_"+functionName + "()";
+                        FinalText += "GENERATED_JS_"+functionName;
 
-                        if (!clientFunctions.Contains(functionName))
-                            clientFunctions.Add(functionName);
+                        //if (!clientFunctions.Contains(functionName))
+                        //    clientFunctions.Add(functionName);
                         continue;
                     }
                     else
@@ -99,17 +158,45 @@ namespace FlangWebsiteConsole
             string clientEventHandeler = $$"""
             <script>
 """;
-            foreach (var functionName in clientFunctions)
+            foreach (var func in clientFunctions)
             {
+                List<string> argumentz = func.arguments.Select((ar) => ar.Item2).ToList();
                 clientEventHandeler += $$"""
-            	async function GENERATED_JS_{{functionName}}()
+            	async function GENERATED_JS_{{func.name}}({{string.Join(", ",argumentz)}})
             	{
             		<(flang
             			if (URL.contains("?"))
-            				print("return (await (await fetch(\"{URL}&clientEvent={{functionName}}\")).text());"$);
+            				print("var url = \"{URL}&clientEvent={{func.name}}\";"$);
             			else
-            				print("return (await (await fetch(\"{URL}?clientEvent={{functionName}}\")).text());"$);
+            				print("var url = \"{URL}?clientEvent={{func.name}}\";"$);
             		)>
+
+
+                    // Define your POST parameters here
+                    let postData = {
+""";
+                    foreach (var (type, name) in func.arguments)
+                    {
+                    clientEventHandeler += $$"""
+                        GENERATED_{{name}}: {{name}},
+""";
+
+                    }
+clientEventHandeler += $$"""
+                    };
+                    
+                    // Send POST request
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(postData)
+                    });
+                    
+                    // Get the response body
+                    let responseData = await response.text();
+                    return responseData;
             	}
 """;
             }
@@ -122,12 +209,23 @@ clientEventHandeler += $$"""
                 {{FinalClientCode}}
 
 """;
-            foreach (var functionName in clientFunctions)
+            foreach (var func in clientFunctions)
             {
                 output += $$"""
-                    if (GET["clientEvent"] == "{{functionName}}")
+                    if (GET["clientEvent"] == "{{func.name}}")
                     {
-                        var output = {{functionName}}();
+""";
+                    foreach (var (type, name) in func.arguments)
+                    {
+output += $$"""
+                        var% {{name}} = POST["GENERATED_{{name}}"];
+""";
+
+                    }
+                List<string> argumentz = func.arguments.Select((ar) => ar.Item2).ToList();
+
+                output += $$"""
+                        var output = {{func.name}}({{string.Join(", ", argumentz)}});
                         return "$clientEvent${output}"$;
                     }
 """;
