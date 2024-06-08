@@ -68,11 +68,11 @@ namespace FlangWebsiteConsole
 #if DEBUG
             args = new[]
             {
-"--C:/xampp/htdocs/weblessen/leerjaar3/flangApi/index2.flang?url=lol&clientEvent=readFile&csdebug=true",
-"--aW5kZXgyLmZsYW5nP3VybD1sb2wmY2xpZW50RXZlbnQ9cmVhZEZpbGUmY3NkZWJ1Zz10cnVl",
-"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXgyLmZsYW5nP3VybD1sb2wmY2xpZW50RXZlbnQ9cmVhZEZpbGUmY3NkZWJ1Zz10cnVl",
+"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
+"--aW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
+"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXgyLmZsYW5nP2NzZGVidWc9dHJ1ZQ==",
 "--",
-"--eyJ1cmwiOiJsb2wiLCJjbGllbnRFdmVudCI6InJlYWRGaWxlIiwiY3NkZWJ1ZyI6InRydWUifQ==",
+"--eyJjc2RlYnVnIjoidHJ1ZSJ9",
 "--W10=",
             };
 #endif
@@ -120,10 +120,8 @@ namespace FlangWebsiteConsole
                     Send(GenerateError("File not found", $"{filePath} not found"));
                     return;
                 }
-                //file found, set the working directory for any code that might use it
-                Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
                 string code = File.ReadAllText(filePath);
-                string output = ParseFlang(code, page, url, content, GET, POST);
+                string output = ParseFlang(code, filePath, page, url, content, GET, POST);
                 Send(output);
             }
             catch (Exception e) 
@@ -131,7 +129,7 @@ namespace FlangWebsiteConsole
                 Send(GenerateError("Something went wrong.",e.Message));
             }
         }
-        private static string ParseFlang(string input,string page,string url,string contentRaw, Dictionary<string, object> GET, Dictionary<string, object> POST)
+        private static string ParseFlang(string input, string filePath, string page,string url,string contentRaw, Dictionary<string, object> GET, Dictionary<string, object> POST)
         {
             FlangHTMLParser parser = new FlangHTMLParser();
             (var FinalText, var FinalCode) = parser.Parse(input);
@@ -155,6 +153,9 @@ namespace FlangWebsiteConsole
             {FinalCode}
             return TEXT;
 """;
+
+            //file found, set the working directory for any code that might use it
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
             object output = Flang.RunCode(Code, false);
             List<(object, object)> outputDict = FLang.ListFromFriedDictionary(output);
 
