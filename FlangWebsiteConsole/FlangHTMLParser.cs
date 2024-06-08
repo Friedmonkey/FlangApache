@@ -28,7 +28,13 @@ namespace FlangWebsiteConsole
         List<Macro> DefaultMacros = new List<Macro>()
         {
             new Macro("get","document.getElementById({0})","$id"),
+            new Macro("set","innerHtml = {0}","$text"),
             new Macro("setText","{0}.innerText = {1}","$element", "$text"),
+
+            new Macro("bind","id=\"BIND_{0}\"","$varible"),
+            new Macro("setBind",
+                "document.addEventListener('DOMContentLoaded', function() {{ const BIND_REF_{0} = document.getElementById('BIND_{0}'); function BIND_update{0}() {{ {0} = BIND_REF_{0}.value;}} BIND_update{0}(); BIND_REF_{0}.addEventListener('input', BIND_update{0}); }});",
+                "$varible"),
         };
 
         private string ClientCodePreParser(string input)
@@ -73,7 +79,7 @@ namespace FlangWebsiteConsole
                         }
                         Position++;
                         Position++;
-                        FinalText += functionName + "()";
+                        FinalText += "GENERATED_JS_"+functionName + "()";
 
                         if (!clientFunctions.Contains(functionName))
                             clientFunctions.Add(functionName);
@@ -96,7 +102,7 @@ namespace FlangWebsiteConsole
             foreach (var functionName in clientFunctions)
             {
                 clientEventHandeler += $$"""
-            	async function {{functionName}}()
+            	async function GENERATED_JS_{{functionName}}()
             	{
             		<(flang
             			if (URL.contains("?"))
