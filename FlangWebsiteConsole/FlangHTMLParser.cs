@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Reflection.PortableExecutable;
@@ -172,27 +173,26 @@ namespace FlangWebsiteConsole
             		)>
 
 
-                    // Define your POST parameters here
-                    let postData = {
+                    // Data to be sent in the POST request
+                    const postData = new URLSearchParams();
 """;
                     foreach (var (type, name) in func.arguments)
                     {
                     clientEventHandeler += $$"""
-                        GENERATED_{{name}}: {{name}},
+                        postData.append('GENERATED_{{name}}', {{name}});
 """;
 
                     }
 clientEventHandeler += $$"""
-                    };
                     
-                    // Send POST request
+                    // Making the fetch request
                     let response = await fetch(url, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/x-www-form-urlencoded'
                         },
-                        body: JSON.stringify(postData)
-                    });
+                        body: postData.toString()
+                    })
                     
                     // Get the response body
                     let responseData = await response.text();
@@ -218,8 +218,9 @@ clientEventHandeler += $$"""
                     foreach (var (type, name) in func.arguments)
                     {
 output += $$"""
-                        return POST;
-                        {{type}} {{name}} = <{{type}}>POST["GENERATED_{{name}}"];
+                        
+                        string STR_{{name}} = POST["GENERATED_{{name}}"];
+                        {{type}} {{name}} = STR_{{name}};
 """;
 
                     }
@@ -460,8 +461,8 @@ output += $$"""
                 }
                 input = input.Replace("#use clientFlang", "");
                 this.Analizable = input.ToList();
-                var output = ClientCodePreParser(input);
-                this.Analizable = output.ToList();
+                input = ClientCodePreParser(input);
+                this.Analizable = input.ToList();
                 this.Position = 0;
             }
             else
@@ -471,6 +472,9 @@ output += $$"""
                     throw new System.Exception("\"<(clientflang\" code entry has been found, but clientFlang isnt enabled, add \"#use clientFlang\" to the top of your file to enable.");
                 }
             }
+
+            //debugging
+            //File.WriteAllText("compiled.flang", input);
 
             while (Current != '\0')
             {
