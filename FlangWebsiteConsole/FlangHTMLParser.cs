@@ -123,7 +123,7 @@ namespace FlangWebsiteConsole
                 }
                 else
                 {
-                    if (Find("<(clientflang"))
+                    if (Find("<(clientFlang"))
                     {
                         isClientFlang = true;
                         Position++;
@@ -431,6 +431,15 @@ output += $$"""
             bool isFPrint = false;
 
 
+            bool usePrintedHtml = input.Split("\n").Any(l => l.Trim().StartsWith("#use printedHtml"));
+            if (usePrintedHtml)
+            {
+                input = input.Replace("#use printedHtml", "");
+                this.Analizable = input.ToList();
+                
+                FinalCode += "POSITION = 0; print(\"";
+            }
+
             bool useMacros = input.Split("\n").Any(l => l.Trim().StartsWith("#use macros"));
             if (useMacros)
             {
@@ -455,7 +464,7 @@ output += $$"""
                 {
                     throw new System.Exception("clientEventHandeler is missing, client code cannot be executed, \"<$clientEventHandeler$>\" in the head of your html file");
                 }
-                if (!input.Contains("<(clientflang"))
+                if (!input.Contains("<(clientFlang"))
                 {
                     throw new System.Exception("#use clientFlang is specified but no \"<(clientflang\" code entry can be found, which means the implementations are missing");
                 }
@@ -488,6 +497,10 @@ output += $$"""
                             FinalCode += ")";
                         }
                         isFlang = false;
+                        if (usePrintedHtml)
+                        { 
+                            FinalCode += " print(\"";
+                        }
                         continue;
                     }
                     else
@@ -500,6 +513,10 @@ output += $$"""
                 {
                     if (Find("<(flang"))
                     {
+                        if (usePrintedHtml)
+                        { 
+                            FinalCode += "\");";
+                        }
                         isFlang = true;
                         //FinalText += Current;
                         Position++;
@@ -508,6 +525,10 @@ output += $$"""
                     }
                     if (Find("<(="))
                     {
+                        if (usePrintedHtml)
+                        { 
+                            FinalCode += "\");";
+                        }
                         isFlang = true;
                         isFPrint = true;
                         //FinalText += Current;
@@ -517,12 +538,30 @@ output += $$"""
                     }
                     else
                     {
-                        FinalText += Current;
+                        if (usePrintedHtml)
+                        {
+                            if (Current == '\"') FinalCode += "\\";
+                            FinalCode += Current;
+                        }
+                        else
+                        { 
+                            FinalText += Current;
+                        }
                         Position++;
                     }
                 }
             }
-
+            if (usePrintedHtml)
+            { 
+                if (FinalCode.EndsWith(" print(\""))
+                {
+                    FinalCode = FinalCode.Substring(0, FinalCode.Length - "print(\"".Length);
+                }
+                else
+                {
+                    FinalCode += "\");";
+                }
+            }
             return (FinalText, FinalCode);
         }
         public bool Find(string find)
