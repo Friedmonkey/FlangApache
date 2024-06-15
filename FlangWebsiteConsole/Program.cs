@@ -126,11 +126,14 @@ namespace FlangWebsiteConsole
             }
             catch (Exception e) 
             {
-                Send(GenerateError("Something went wrong.",e.Message));
+                string msg = e.Message.Replace("<","&lt;").Replace(">","&gt;");
+                Send(GenerateError("Something went wrong.",msg));
             }
         }
         private static string ParseFlang(string input, string filePath, string page,string url,string contentRaw, Dictionary<string, object> GET, Dictionary<string, object> POST)
         {
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
+
             FlangHTMLParser parser = new FlangHTMLParser();
             (var FinalText, var FinalCode) = parser.Parse(input);
 
@@ -155,7 +158,6 @@ namespace FlangWebsiteConsole
 """;
 
             //file found, set the working directory for any code that might use it
-            Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
             object output = Flang.RunCode(Code, false);
             List<(object, object)> outputDict = FLang.ListFromFriedDictionary(output);
 

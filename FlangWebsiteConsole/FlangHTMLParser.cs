@@ -365,29 +365,49 @@ output += $$"""
             }
         }
         public void CaptureComponentMacroTypedArguments(Macro macro, ref List<string> arguments)
-        { 
+        {
             while (char.IsWhiteSpace(Current)) Position++;
+            bool foundAnything = false;
             foreach (string argument in macro.arguments) 
             {
                 string argumentValue = "";
-                bool found = false;
                 if (Find($"{argument}=\""))
                 {
-                    found = true;
                     while (Current != '"')
                     {
                         argumentValue += Current;
                         Position++;
                     }
                     Position++; //skip the last "
-                }
-                if (found)
-                { 
+
+
+                    foundAnything = true;
                     //the index where this argument is stored
                     int idx = macro.arguments.IndexOf(argument);
                     //effectively setting that value
                     arguments[idx] = argumentValue;
                     break;
+                }
+
+            }
+            if (!foundAnything)
+            {
+                string failedArgument = "";
+                while (char.IsWhiteSpace(Current)) Position++;
+                while (Current != '/' && Current != '>')
+                {
+                    if (char.IsWhiteSpace(Current) || Current == '=') break;
+
+                    failedArgument += Current;
+                    Position++;
+                }
+                if (string.IsNullOrEmpty(failedArgument))
+                {
+                    throw new Exception($"Error on the syntax of macro: {macro.name} on position:{Position}");
+                }
+                else
+                { 
+                    throw new Exception($"Agument: \"{failedArgument}\" not found for component macro: {macro.name} on position:{Position}");
                 }
             }
         }
@@ -396,9 +416,12 @@ output += $$"""
             if (macro.ComponentHasBody)
             {
                 while (Current != '>')
-                { 
+                {
+                    if (Current == '/' && Peek(1) == '>')
+                        throw new Exception($"Macro: {macro.name} is defined WITH a body, please include an closing tag for the macro e.g. \"<&lt;>{macro.name} [ARGUMENTS] >; [CONTENT] </{macro.name}>\"");
                     //normal arguments
                     CaptureComponentMacroTypedArguments(macro, ref arguments);
+                    while (char.IsWhiteSpace(Current)) Position++;
                 }
                 // capture the body argument
                 Position++; //skip >
@@ -415,9 +438,12 @@ output += $$"""
             else
             {
                 while (!(Current == '/' && Peek(1) == '>'))
-                { 
+                {
+                    if (Current == '>') 
+                        throw new Exception($"Macro: {macro.name} ISNT defined with a body, please end the macro e.g. \"&lt;{macro.name} [ARGUMENTS] /&gt;\"");
                     //normal arguments
                     CaptureComponentMacroTypedArguments(macro, ref arguments);
+                    while (char.IsWhiteSpace(Current)) Position++;
                 }
                 Position++; //skip '/'
                 Position++; //skip '>'
@@ -443,6 +469,19 @@ output += $$"""
             }
 
             found = true;
+        }
+
+
+        public void CheckIncludes(string input)
+        {
+            bool hasIncludes() { return input.Split("\n").Any(l => l.Trim().StartsWith("#include")); }
+
+            while (hasIncludes())
+            {
+                this.Analizable = input.ToList();
+                input = ParseIncludes(input);
+                this.Analizable = input.ToList();
+            }
         }
         public string ParseMacros(string input) 
         {
@@ -570,6 +609,45 @@ output += $$"""
             return FinalText;
         }
         
+        public string ParseIncludes(string input)
+        { 
+            string FinalText = string.Empty;
+
+            while (Current != '\0')
+            {
+                if (Find("#include "))
+                {
+                    string filename = "";
+                    if (Current == '"')
+                    {
+                        Position++; //skip opening "
+                        while (Current != '"')
+                        {
+                            filename += Current;
+                            Position++;
+                        }
+                        Position++; // skip closing "
+                    }
+                    else throw new Exception($"import was expecting [\"] got [{Current}] instead");
+                    if (File.Exists(filename))
+                    {
+                        string contents = File.ReadAllText(filename);
+                        FinalText += contents;
+                        //Position += contents.Length;
+                    }
+                    else
+                    {
+                        throw new Exception($"include failed, file \"{filename}\" cannot be found.");
+                    }
+                }
+                else
+                {
+                    FinalText += Current;
+                    Position++;
+                }
+            }
+            return FinalText;
+        }
         public (string FinalText, string FinalCode) Parse(string input)
         {
             string FinalText = string.Empty;
@@ -578,6 +656,16 @@ output += $$"""
             bool isFlang = false;
             bool isFPrint = false;
 
+
+            bool hasIncludes = input.Split("\n").Any(l => l.Trim().StartsWith("#include"));
+            if (hasIncludes)
+            {
+                this.Analizable = input.ToList();
+                input = ParseIncludes(input);
+                this.Analizable = input.ToList();
+                this.Position = 0;
+
+            }
 
             bool usePrintedHtml = input.Split("\n").Any(l => l.Trim().StartsWith("#use printedHtml"));
             if (usePrintedHtml)
