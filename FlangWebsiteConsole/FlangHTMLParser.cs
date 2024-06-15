@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using static FlangWebsiteConsole.FlangHTMLParser;
 using static FriedLang.NativeLibraries.Lang;
 
 namespace FlangWebsiteConsole
@@ -23,6 +24,9 @@ namespace FlangWebsiteConsole
             public string name;
             public List<string> arguments;
             public string body;
+            public bool DoubleDefined;
+            public bool Component;
+            public bool ComponentHasBody;
         }
         public struct ClientFunction
         {
@@ -41,6 +45,8 @@ namespace FlangWebsiteConsole
             new Macro("setBind",
                 "document.addEventListener('DOMContentLoaded', function() {{ const BIND_REF_{0} = document.getElementById('BIND_{0}'); function BIND_update{0}() {{ {0} = BIND_REF_{0}.value;}} BIND_update{0}(); BIND_REF_{0}.addEventListener('input', BIND_update{0}); }});",
                 "$varible"),
+
+            new Macro("htmlcode",")>{0}<(flang","$htmlcode"){ DoubleDefined=true },
         };
 
         private string ClientCodePreParser(string input)
@@ -241,6 +247,203 @@ output += $$"""
             return output;
         }
 
+        public bool ParseMacroNormal(ref string macroName)
+        {
+            bool doubleDefine = false;
+            while (Current != '(')
+            {
+                macroName += Current;
+                Position++;
+            }
+            Position++; //to skip (
+            if (Current == '(')
+            {
+                Position++; // to skip the second ( and enable double defined
+                doubleDefine = true;
+            }
+
+            return doubleDefine;
+        }
+        public bool ParseMacroComponent(ref string macroName)
+        {
+            bool componentHasBody = false;
+            Position++;
+            while (Current != '/' && Current != '>')
+            {
+                macroName += Current;
+                Position++;
+            }
+            if (Current != '/') //its a has a body
+            {
+                componentHasBody = true;
+            }
+            else
+            { 
+                Position++; //skip /
+            }
+            Position++; // skip >
+            Position++; // skip (
+
+
+            return componentHasBody;
+        }
+        public void ParseMacroArguments(ref List<string> arguments, bool doubleDefine)
+        {
+            while (Current != ')')
+            {
+                string argument = "";
+                while (Current != ',' && Current != ')')
+                {
+                    if (Current == ' ')
+                    {
+                        Position++;
+                        continue;
+                    }
+                    argument += Current;
+                    Position++;
+                }
+                if (doubleDefine && Current == ',') throw new Exception("DoubleDefined macros does not support multiple arguments");
+                arguments.Add(argument);
+                if (Current == ')') break;
+                Position++; //skip ,
+            }
+            Position++; // skip )
+            if (doubleDefine && Current == ')') Position++;
+        }
+        public void ParseMacroBody(List<string> arguments, ref string macroBody) 
+        {
+            bool found = false;
+            for (int i = 0; i < arguments.Count(); i++)
+            {
+                var argument = arguments[i];
+                if (Find(argument))
+                {
+                    macroBody += "{" + i + "}";
+                    // generate a string format "console.writeline({0})".format(arg1,arg2)
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                macroBody += Current;
+                Position++;
+            }
+        }
+        public void CaptureNormalMacroArguments(bool doubleDefined, ref List<string> arguments)
+        {
+            if (doubleDefined && Current == '(')
+            {
+                Position++; //skip the extra (
+                            //in this case we're using the double defined version
+                string argument = "";
+                while (!(Current == ')' && Peek(1) == ')'))
+                {
+                    argument += Current;
+                    Position++;
+                }
+                arguments.Add(argument);
+                Position++; //skip first )
+                Position++; //skip second )
+            }
+            else
+            {
+                while (Current != ')')
+                {
+                    string argument = "";
+                    while (Current != ',' && Current != ')')
+                    {
+                        argument += Current;
+                        Position++;
+                    }
+                    arguments.Add(argument);
+                    if (Current == ')') break;
+                    Position++; //skip ,
+                }
+                Position++; //skip )
+            }
+        }
+        public void CaptureComponentMacroTypedArguments(Macro macro, ref List<string> arguments)
+        { 
+            while (char.IsWhiteSpace(Current)) Position++;
+            foreach (string argument in macro.arguments) 
+            {
+                string argumentValue = "";
+                bool found = false;
+                if (Find($"{argument}=\""))
+                {
+                    found = true;
+                    while (Current != '"')
+                    {
+                        argumentValue += Current;
+                        Position++;
+                    }
+                    Position++; //skip the last "
+                }
+                if (found)
+                { 
+                    //the index where this argument is stored
+                    int idx = macro.arguments.IndexOf(argument);
+                    //effectively setting that value
+                    arguments[idx] = argumentValue;
+                    break;
+                }
+            }
+        }
+        public void CaptureComponentMacroArguments(Macro macro, ref List<string> arguments)
+        {
+            if (macro.ComponentHasBody)
+            {
+                while (Current != '>')
+                { 
+                    //normal arguments
+                    CaptureComponentMacroTypedArguments(macro, ref arguments);
+                }
+                // capture the body argument
+                Position++; //skip >
+                string BodyArgument = "";
+                while (!Find($"</{macro.name}>")) //till we find the closing tag
+                {
+                    BodyArgument += Current;
+                    Position++;
+                }
+                //body argument is always stored at index 0
+                arguments[0] = BodyArgument;
+                //we're done here
+            }
+            else
+            {
+                while (!(Current == '/' && Peek(1) == '>'))
+                { 
+                    //normal arguments
+                    CaptureComponentMacroTypedArguments(macro, ref arguments);
+                }
+                Position++; //skip '/'
+                Position++; //skip '>'
+            }
+        }
+        public void ApplyMacro(Macro macro, List<string> arguments, ref string FinalText, ref bool found) 
+        {
+            int macroArgCount = macro.arguments.Count();
+            int argCount = arguments.Count();
+
+            if (argCount == macroArgCount)
+            {
+                var args = new object[argCount];
+                for (int j = 0; j < argCount; j++)
+                {
+                    args[j] = arguments[j];
+                }
+                FinalText += string.Format(macro.body, args);
+            }
+            else
+            {
+                throw new Exception($"error on macro {macro.name}, expected {macroArgCount} arguments, got {argCount}");
+            }
+
+            found = true;
+        }
         public string ParseMacros(string input) 
         {
             string FinalText = string.Empty;
@@ -255,54 +458,52 @@ output += $$"""
                     string macroName = "";
                     List<string> arguments = new List<string>();
                     string macroBody = "";
+                    bool doubleDefine = false;
+                    bool component = false;
+                    bool componentHasBody = false;
 
-                    while (Current != '(')
+                    if (Current == '<') //its a component
                     {
-                        macroName += Current;
-                        Position++;
-                    }
-                    Position++;
-                    while (Current != ')')
-                    {
-                        string argument = "";
-                        while (Current != ',' && Current != ')')
+                        component = true;
+                        componentHasBody = ParseMacroComponent(ref macroName);
+                        if (componentHasBody)
                         {
-                            if (Current == ' ')
-                            {
-                                Position++;
-                                continue;
-                            }
-                            argument += Current;
-                            Position++;
+                            arguments.Add("$body");
                         }
-                        arguments.Add(argument);
-                        if (Current == ')') break;
-                        Position++; //skip ,
+                        //get the arguments
                     }
-                    Position++; // skip )
+                    else //if its a normal define
+                    {
+                        doubleDefine = ParseMacroNormal(ref macroName);
+                        //get the arguments
+                    }
+
+                    //get all arguments
+                    ParseMacroArguments(ref arguments, doubleDefine);
                     while (Current == ' ') //skip all spaces
                     {
                         Position++;
                     }
-                    while (Current != '\n' && Current != '\r') //the body
+                    if (component)
                     {
-                        bool found = false;
-                        for (int i = 0; i < arguments.Count(); i++)
+                        while (char.IsWhiteSpace(Current)) //skip all spaces
                         {
-                            var argument = arguments[i];
-                            if (Find(argument))
-                            {
-                                macroBody += "{" + i + "}";
-                                // generate a string format "console.writeline({0})".format(arg1,arg2)
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if (!found)
-                        {
-                            macroBody += Current;
                             Position++;
+                        }
+                        while (Current == '{') Position++; //skip opening brackets
+
+                        while (!(Current == '}' && Peek(1) == '}')) //the body
+                        {
+                            ParseMacroBody(arguments, ref macroBody);
+                        }
+                        Position++; //skip first }
+                        Position++; //skip second }
+                    }
+                    else
+                    {
+                        while (Current != '\n' && Current != '\r') //the body
+                        {
+                            ParseMacroBody(arguments, ref macroBody);
                         }
                     }
 
@@ -310,7 +511,10 @@ output += $$"""
                     {
                         name = macroName,
                         arguments = arguments,
-                        body = macroBody
+                        body = macroBody,
+                        DoubleDefined = doubleDefine,
+                        Component = component,
+                        ComponentHasBody = componentHasBody,
                     };
 
                     if (!Macros.Contains(finalMacro))
@@ -320,45 +524,38 @@ output += $$"""
                 else
                 {
                     bool found = false;
-                    // Expand macros
-                    for (int i = 0; i < Macros.Count(); i++)
+                    // Expand normal macros
+                    foreach (var macro in Macros.Where(m => !m.Component))
                     {
-                        var macro = Macros[i];
                         if (Find($"@{macro.name}("))
                         {
                             List<string> arguments = new List<string>();
-                            while (Current != ')')
-                            {
-                                string argument = "";
-                                while (Current != ',' && Current != ')')
-                                {
-                                    argument += Current;
-                                    Position++;
-                                }
-                                arguments.Add(argument);
-                                if (Current == ')') break;
-                                Position++; //skip ,
-                            }
-                            Position++; //skip )
 
-                            int macroArgCount = macro.arguments.Count();
-                            int argCount = arguments.Count();
+                            CaptureNormalMacroArguments(macro.DoubleDefined, ref arguments);
 
-                            if (argCount == macroArgCount)
+                            ApplyMacro(macro, arguments, ref FinalText, ref found);
+                            break;
+                        }
+                    }
+
+                    // Expand component macros
+                    foreach (var macro in Macros.Where(m => m.Component))
+                    {
+                        if (Find($"<{macro.name}"))
+                        {
+                            List<string> arguments = new List<string>();
+
+                            //pre fill the list of arguments to all be empty
+                            for (int i = 0; i < macro.arguments.Count(); i++)
                             {
-                                var args = new object[argCount];
-                                for (int j = 0; j < argCount; j++)
-                                {
-                                    args[j] = arguments[j];
-                                }
-                                FinalText += string.Format(macro.body, args);
-                            }
-                            else
-                            {
-                                throw new Exception($"error on macro {macro.name}, expected {macroArgCount} arguments, got {argCount}");
+                                arguments.Add(string.Empty);
                             }
 
-                            found = true;
+                            CaptureComponentMacroArguments(macro, ref arguments);
+
+
+
+                            ApplyMacro(macro, arguments, ref FinalText, ref found);
                             break;
                         }
                     }
@@ -372,56 +569,7 @@ output += $$"""
 
             return FinalText;
         }
-        public string ParseMacrosOld(string input) 
-        {
-            var macroLines = input.Split("\n").Where(l => l.Trim().StartsWith("#define")).ToList();
-            foreach (var macroLine in macroLines)
-            {
-                var macroText = macroLine.Trim().Substring("#define ".Length);
-                string macroName = "";
-                List<string> macroArguments = new List<string>();
-                string currentArgument = "";
-                string macroBody = "";
-                bool isName = true;
-                bool isArguments = true;
-
-                foreach (char character in macroText)
-                {
-                    if (isName)
-                    {
-                        if (char.IsLetter(character))
-                        {
-                            macroName += character;
-                        }
-                        else
-                        {
-                            if (character == '(')
-                            {
-                                isName = false;
-                                isArguments = true;
-                            }
-                        }
-                    }
-                    else if (isArguments)
-                    {
-                        if (char.IsLetter(character))
-                        {
-                            macroName += character;
-                        }
-                        else
-                        {
-                            if (character == '(')
-                            {
-                                isName = false;
-                                isArguments = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return "";
-        }
+        
         public (string FinalText, string FinalCode) Parse(string input)
         {
             string FinalText = string.Empty;
