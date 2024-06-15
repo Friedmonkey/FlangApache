@@ -327,6 +327,12 @@ output += $$"""
 
             if (!found)
             {
+                //string.format does not allow single { or } they need to be escaped, {{ and }}
+                //so we add them twice to escape them
+                if (Current == '{' || Current == '}')
+                { 
+                    macroBody += Current;
+                }
                 macroBody += Current;
                 Position++;
             }
@@ -461,6 +467,7 @@ output += $$"""
                 {
                     args[j] = arguments[j];
                 }
+
                 FinalText += string.Format(macro.body, args);
             }
             else
@@ -519,26 +526,26 @@ output += $$"""
 
                     //get all arguments
                     ParseMacroArguments(ref arguments, doubleDefine);
-                    while (Current == ' ') //skip all spaces
+
+                    //skip all spaces
+                    while (char.IsWhiteSpace(Current))  Position++;
+
+                    //if the macro starts with 2 {{
+                    //we take it as being multiline
+                    if (Current == '{' && Peek(1) == '{')
                     {
-                        Position++;
-                    }
-                    if (component)
-                    {
-                        while (char.IsWhiteSpace(Current)) //skip all spaces
-                        {
-                            Position++;
-                        }
-                        while (Current == '{') Position++; //skip opening brackets
+                        Position++; //skip first opening
+                        Position++; //skip second
 
                         while (!(Current == '}' && Peek(1) == '}')) //the body
                         {
                             ParseMacroBody(arguments, ref macroBody);
                         }
+
                         Position++; //skip first }
                         Position++; //skip second }
                     }
-                    else
+                    else //otherwise we grab the macro and use single line
                     {
                         while (Current != '\n' && Current != '\r') //the body
                         {
@@ -672,8 +679,15 @@ output += $$"""
             {
                 input = input.Replace("#use printedHtml", "");
                 this.Analizable = input.ToList();
-                
+
                 FinalCode += "POSITION = 0; print(\"";
+            }
+            else
+            {
+                if (input.Contains("@htmlcode"))
+                {
+                    throw new System.Exception("\"@htmlcode\" macro has been used, but serves zero purpose if printedHtml isnt enabled, add \"#use printedHtml\" to the top of your file to enable it.");
+                }
             }
 
             bool useMacros = input.Split("\n").Any(l => l.Trim().StartsWith("#use macros"));
@@ -712,9 +726,9 @@ output += $$"""
             }
             else
             {
-                if (input.Contains("<(clientflang"))
+                if (input.Contains("<(clientFlang"))
                 {
-                    throw new System.Exception("\"<(clientflang\" code entry has been found, but clientFlang isnt enabled, add \"#use clientFlang\" to the top of your file to enable.");
+                    throw new System.Exception("\"<(clientFlang\" code entry has been found, but clientFlang isnt enabled, add \"#use clientFlang\" to the top of your file to enable.");
                 }
             }
 

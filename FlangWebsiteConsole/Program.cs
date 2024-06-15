@@ -68,9 +68,9 @@ namespace FlangWebsiteConsole
 #if DEBUG
             args = new[]
             {
-"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXg1LmZsYW5nP2NzRGVidWc9dHJ1ZQ==",
-"--aW5kZXg1LmZsYW5nP2NzRGVidWc9dHJ1ZQ==",
-"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXg1LmZsYW5nP2NzRGVidWc9dHJ1ZQ==",
+"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXguZmxhbmc/Y3NEZWJ1Zz10cnVl",
+"--aW5kZXguZmxhbmc/Y3NEZWJ1Zz10cnVl",
+"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvaW5kZXguZmxhbmc/Y3NEZWJ1Zz10cnVl",
 "--",
 "--eyJjc0RlYnVnIjoidHJ1ZSJ9",
 "--W10=",
@@ -139,6 +139,7 @@ namespace FlangWebsiteConsole
 
             //Flang.ImportNative
             FLang Flang = new FLang();
+            GlobalState.DisableLogicalIdentMessages();
 
             Flang.ImportNative<Lang>("lang");
             Flang.ImportNative<webIO>("io");
@@ -146,7 +147,7 @@ namespace FlangWebsiteConsole
             Flang.AddVariable("PAGE", page);
             Flang.AddVariable("URL", url);
             Flang.AddVariable("CONTENT", contentRaw);
-            Flang.AddDictionary<string, object>("GET", GET);
+            Flang.AddDictionary<string, object>("GET", GET);    
             Flang.AddDictionary<string, object>("POST",POST);
             Flang.AddDictionary<int, string>("TEXT", new Dictionary<int, string>());
 
