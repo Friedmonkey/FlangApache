@@ -464,8 +464,9 @@ output += $$"""
                 {
                     args[j] = arguments[j];
                 }
-
-                FinalText += string.Format(macro.body, args);
+                var compiledMacro = string.Format(macro.body, args);
+                //FinalText += compiledMacro;
+                this.Analizable.InsertRange(Position,compiledMacro);
             }
             else
             {
