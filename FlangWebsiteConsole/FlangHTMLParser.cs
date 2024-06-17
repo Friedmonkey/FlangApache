@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
-using System.Reflection.PortableExecutable;
-using System.Text;
 using static FlangWebsiteConsole.FlangHTMLParser;
 using static FriedLang.NativeLibraries.Lang;
 
