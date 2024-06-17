@@ -7,9 +7,6 @@ using System.Linq;
 using FriedLang.NativeLibraries;
 using System.IO;
 using Newtonsoft.Json;
-using static System.Net.Mime.MediaTypeNames;
-using System.Reflection;
-using static FriedLang.NativeLibraries.Lang;
 
 namespace FlangWebsiteConsole
 {
