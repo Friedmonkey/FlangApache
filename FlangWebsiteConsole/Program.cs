@@ -7,6 +7,7 @@ using System.Linq;
 using FriedLang.NativeLibraries;
 using System.IO;
 using Newtonsoft.Json;
+using static FriedLang.NativeLibraries.Lang;
 
 namespace FlangWebsiteConsole
 {
@@ -120,6 +121,7 @@ namespace FlangWebsiteConsole
                 }
                 string code = File.ReadAllText(filePath);
                 string output = ParseFlang(code, filePath, page, url, content, GET, POST);
+
                 Send(output);
             }
             catch (Exception e) 
@@ -131,21 +133,14 @@ namespace FlangWebsiteConsole
 
         private static string ParseFlang(string input, string filePath, string page,string url,string contentRaw, Dictionary<string, object> GET, Dictionary<string, object> POST)
         {
-            Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
-
             string FinalText;
             string FinalCode;
 
-            //just a parsing cache
-            if (!TryGetCache(input, filePath, out FinalText, out FinalCode))
-            { 
-                //if we did not get it from the cache we recompute it
-                FlangHTMLParser parser = new FlangHTMLParser();
-                (FinalText, FinalCode) = parser.Parse(input);
-                
-                //cache this for later
-                Cache(input, filePath, FinalText, FinalCode);
-            }
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
+
+            //just always do this caching isnt worth it
+            FlangHTMLParser parser = new FlangHTMLParser();
+            (FinalText, FinalCode) = parser.Parse(input);
 
 
             //Flang.ImportNative
@@ -245,77 +240,6 @@ namespace FlangWebsiteConsole
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
             return fvi.FileVersion;
-        }
-        private static UInt64 CalculateHash(string read)
-        {
-            UInt64 hashedValue = 3074457345618258791ul;
-            for (int i = 0; i < read.Length; i++)
-            {
-                hashedValue += read[i];
-                hashedValue *= 3074457345618258799ul;
-            }
-            return hashedValue;
-        }
-        private static string Hash(string input)
-        {
-            return CalculateHash(input).ToString();
-        }
-        private static void DirCheck() 
-        {
-            if (!Directory.Exists("$FlangCache"))
-                Directory.CreateDirectory("$FlangCache");
-        }
-        private static bool TryGetCache(string input, string filePath, out string cachedTextOutput, out string cachedCodeOutput)
-        {
-            DirCheck();
-
-            var hashed = Hash(input);
-
-            var name = Path.GetFileName(filePath);
-
-            var dir = Path.Combine("$FlangCache", $"{name}_{hashed}");
-            if (Directory.Exists(dir))
-            {
-                cachedTextOutput = File.ReadAllText(Path.Combine(dir, $"{name}_TEXT.txt"));
-                cachedCodeOutput = File.ReadAllText(Path.Combine(dir, $"{name}_CODE.txt"));
-                return true;
-            }
-            else
-            {
-                cachedTextOutput = string.Empty;
-                cachedCodeOutput = string.Empty;
-                return false;
-            }
-        }
-        private static void Cache(string input, string filePath, string textOutputToCache, string codeOutputToCache)
-        {
-            DirCheck();
-
-            var hashed = Hash(input);
-
-            var name = Path.GetFileName(filePath);
-
-            RemoveabundantCache(name);
-
-            var dir = Path.Combine("$FlangCache", $"{name}_{hashed}");
-            Directory.CreateDirectory(dir);
-
-            File.WriteAllText(Path.Combine(dir,$"{name}_TEXT.txt"), textOutputToCache);
-            File.WriteAllText(Path.Combine(dir,$"{name}_CODE.txt"), codeOutputToCache);
-        }
-        private static void RemoveabundantCache(string name) 
-        {
-            var dirs = Directory.EnumerateDirectories("$FlangCache");
-
-            foreach (var dir in dirs)
-            {
-                if (dir.StartsWith($"$FlangCache\\{name}_"))
-                { 
-                    File.Delete($"{dir}\\{name}_TEXT.txt");
-                    File.Delete($"{dir}\\{name}_CODE.txt");
-                    Directory.Delete(dir);
-                }
-            }
         }
     }
 }
