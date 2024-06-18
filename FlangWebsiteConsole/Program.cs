@@ -44,7 +44,7 @@ namespace FlangWebsiteConsole
                     }
                     else
                     {
-                        ret = Dict.SetIndex(Position, val); //if it doest exist then make it exist
+                        ret = Dict.SetIndex(Position, new FString(val.SpagToCsString())); //if it doest exist then make it exist
                     }
                     scope.SetAdmin("TEXT", Dict); //update it
                     return ret;
@@ -67,9 +67,9 @@ namespace FlangWebsiteConsole
 #if DEBUG
             args = new[]
             {
-"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvZXhhbXBsZXMvbWFjcm9fZXhhbXBsZS5mbGFuZz9jc0RlYnVn",
-"--bWFjcm9fZXhhbXBsZS5mbGFuZz9jc0RlYnVn",
-"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvZXhhbXBsZXMvbWFjcm9fZXhhbXBsZS5mbGFuZz9jc0RlYnVn",
+"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvZXhhbXBsZXMvaW5kZXguZmxhbmc/Y3NEZWJ1Zw==",
+"--aW5kZXguZmxhbmc/Y3NEZWJ1Zw==",
+"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvZXhhbXBsZXMvaW5kZXguZmxhbmc/Y3NEZWJ1Zw==",
 "--",
 "--eyJjc0RlYnVnIjoiIn0=",
 "--W10=",
