@@ -30,6 +30,15 @@ namespace FlangWebsiteConsole
             public string name;
             public List<(string, string)> arguments;
         }
+        public class CallFunction
+        {
+            public string name;
+            public List<string>? arguments = null;
+            public string? load = null;
+            public string? javascriptBefore = null;
+            public string? javascriptAfter = null;
+            public string? defeault = null;
+        }
         //#define get($id) document.getElementById($id)
         //#define setText($element, $text) $element.innerText = $text
         List<Macro> DefaultMacros = new List<Macro>()
@@ -44,8 +53,257 @@ namespace FlangWebsiteConsole
                 "$varible"),
 
             new Macro("htmlcode",")>{0}<(flang","$htmlcode"){ DoubleDefined=true },
+            new Macro("put","return {{raw{{ {0} }}raw}};","$html"){ DoubleDefined=true },
+            new Macro("update","THIS_{0} = {0};","$var"),
         };
 
+        private string CallCodePreParser(string input)
+        {
+            string FinalText = string.Empty;
+            string FinalClientCode = string.Empty;
+            string FinalEventCode = string.Empty;
+
+            List<CallFunction> callFunctions = new List<CallFunction>();
+
+            while (Current != '\0')
+            {
+                if (Find("@oncall "))
+                {
+                    CallFunction function = null;
+
+                    FinalClientCode += "string clientFlang ";
+                    string functionName = "";
+                    while (Current != '(')
+                    {
+                        functionName += Current;
+                        Position++;
+                    }
+                    FinalClientCode += functionName;
+                    FinalText += $$"""
+            <div id="{{functionName}}">
+""";
+
+                    if (callFunctions.Any(cf => cf.name == functionName))
+                    {
+                        function = callFunctions.FirstOrDefault(cf => cf.name == functionName);
+                        callFunctions.Remove(function);
+                    }
+                    else
+                    {
+                        function = new CallFunction();
+                        function.name = functionName;
+                    }
+
+                    while (Current != '<')
+                    {
+                        FinalClientCode += Current;
+                        Position++;
+                    }
+
+                    //while there is still stuff to parse left
+                    //parse the default/load/body
+                    while (Current == '<' && (Peek(1) == '(' || Peek(1) == '{'))
+                    {
+                        //the body
+                        if (Current == '<' && Peek(1) == '{')
+                        {
+                            Position++; //skip <
+                            Position++; //skip {
+                            FinalClientCode += "{";
+
+                            while (!(Current == '}' && Peek(1) == '>'))
+                            {
+                                FinalClientCode += Current;
+                                Position++;
+                            }
+
+
+                            FinalClientCode += "return \"\";"; //return nothing in case they forgot
+                            FinalClientCode += "}";
+                            Position++; //skip }
+                            Position++; //skip >
+                        }
+                        else if (Current == '<' && Peek(1) == '(')
+                        {
+                            if (Find("<(default:"))
+                            {
+                                string def = "";
+                                while (!(Current == ')' && Peek(1) == '>'))
+                                {
+                                    def += Current;
+                                    Position++;
+                                }
+                                function.defeault = def;
+                                Position++; //skip )
+                                Position++; //skip >
+                            }
+                            else if (Find("<(load:") || Find("<(loading:"))
+                            {
+                                string load = "";
+                                while (!(Current == ')' && Peek(1) == '>'))
+                                {
+                                    load += Current;
+                                    Position++;
+                                }
+                                function.load = load;
+                                Position++; //skip )
+                                Position++; //skip >
+                            }
+                            else if (Find("<(javascript:") || Find("<(jsbefore:"))
+                            {
+                                string javascript = "";
+                                while (!(Current == ')' && Peek(1) == '>'))
+                                {
+                                    javascript += Current;
+                                    Position++;
+                                }
+                                function.javascriptBefore = javascript;
+                                Position++; //skip )
+                                Position++; //skip >
+                            }
+                            else if (Find("<(jsafter:"))
+                            {
+                                string javascript = "";
+                                while (!(Current == ')' && Peek(1) == '>'))
+                                {
+                                    javascript += Current;
+                                    Position++;
+                                }
+                                function.javascriptAfter = javascript;
+                                Position++; //skip )
+                                Position++; //skip >
+                            }
+                        }
+                        while (char.IsWhiteSpace(Current)) Position++;
+                    }
+
+
+                    FinalText += $$"""
+            {{function.defeault}}
+            </div>
+""";
+
+
+                    if (!callFunctions.Any(cf => cf.name == function.name))
+                        callFunctions.Add(function);
+                    continue;
+                }
+                else if (Find("@call "))
+                {
+                    CallFunction function = null;
+
+                    string functionName = "";
+                    while (Current != '(')
+                    {
+                        functionName += Current;
+                        Position++;
+                    }
+
+                    FinalText += functionName;
+
+                    if (callFunctions.Any(cf => cf.name == functionName))
+                    {
+                        function = callFunctions.FirstOrDefault(cf => cf.name == functionName);
+                        callFunctions.Remove(function);
+                    }
+                    else
+                    {
+                        function = new CallFunction();
+                        function.name = functionName;
+                    }
+
+                    FinalText += Current;
+                    Position++; // skip (
+
+                    List<string> arguments = new List<string>();
+                    while (Current != ')')
+                    {
+                        string argument = "";
+                        while (Current != ',' && Current != ')')
+                        {
+                            argument += Current;
+                            Position++;
+                        }
+                        arguments.Add(argument);
+                        if (Current == ')') break;
+                        Position++; //skip ,
+                    }
+
+                    FinalText += string.Join(',', arguments);
+
+                    FinalText += Current;
+                    Position++; //the closing )
+
+                    function.arguments = arguments;
+
+                    if (!callFunctions.Any(cf => cf.name == function.name))
+                        callFunctions.Add(function);
+                    continue;
+                }
+                else
+                {
+                    FinalText += Current;
+                    Position++;
+                }
+            }
+            string clientEventHandeler = $$"""
+            <script>
+""";
+            foreach (var func in callFunctions)
+            {
+                List<string> argumentz = func.arguments.Select((arg) => "THIS_"+arg).ToList();
+                string arguments = string.Join(',', argumentz);
+
+                clientEventHandeler += $$"""
+            	async function {{func.name}}({{arguments}})
+            	{
+""";
+                if (func.javascriptBefore != null)
+                {
+                    clientEventHandeler += $$"""
+                        {{func.javascriptBefore}}
+""";
+                }
+                clientEventHandeler += $$"""
+                    var __request = <(@{{func.name}})>({{arguments}});
+                    var __output = document.getElementById("{{func.name}}");
+""";
+                if (func.load != null)
+                {
+                    clientEventHandeler += $$"""
+                        __output.innerHTML = "{{func.load}}";
+""";
+                }
+                clientEventHandeler += $$"""
+                    var __response = await __request;
+                    __output.innerHTML = __response;
+""";
+                if (func.javascriptAfter != null)
+                {
+                    clientEventHandeler += $$"""
+                        {{func.javascriptAfter}}
+""";
+                }
+                clientEventHandeler += $$"""
+            	}
+""";
+            }
+            clientEventHandeler += $$"""
+            </script>
+""";
+
+            var output = "";
+            output += $$"""
+
+            {{FinalText.Replace("<$clientEventHandeler$>", clientEventHandeler + "<$clientEventHandeler$>")}}
+
+            <(clientFlang
+                {{FinalClientCode}}
+            )>
+""";
+            return output;
+            //add another handeler for later
+        }
         private string ClientCodePreParser(string input)
         {
             string FinalText = string.Empty;
@@ -706,18 +964,26 @@ output += $$"""
                 }
             }
             bool useClient = input.Split("\n").Any(l => l.Trim().StartsWith("#use clientFlang"));
-            if (useClient)
+            bool useCall = input.Split("\n").Any(l => l.Trim().StartsWith("#use call"));
+            if (useClient || useCall)
             {
                 if (!input.Contains("<$clientEventHandeler$>"))
                 {
                     throw new System.Exception("clientEventHandeler is missing, client code cannot be executed, \"<$clientEventHandeler$>\" in the head of your html file");
                 }
-                if (!input.Contains("<(clientFlang"))
+                if (!input.Contains("<(clientFlang") && !useCall)
                 {
                     throw new System.Exception("#use clientFlang is specified but no \"<(clientflang\" code entry can be found, which means the implementations are missing");
                 }
                 input = input.Replace("#use clientFlang", "");
+                input = input.Replace("#use call", "");
                 this.Analizable = input.ToList();
+                if (useCall) 
+                {
+                    input = CallCodePreParser(input);
+                    this.Analizable = input.ToList();
+                    this.Position = 0;
+                }
                 input = ClientCodePreParser(input);
                 this.Analizable = input.ToList();
                 this.Position = 0;
@@ -727,6 +993,10 @@ output += $$"""
                 if (input.Contains("<(clientFlang"))
                 {
                     throw new System.Exception("\"<(clientFlang\" code entry has been found, but clientFlang isnt enabled, add \"#use clientFlang\" to the top of your file to enable.");
+                }
+                if (input.Contains("@oncall") || input.Contains("@call"))
+                {
+                    throw new System.Exception("\"@call\" method found, but call isnt enabled, add \"#use call\" to the top of your file to enable.");
                 }
             }
 

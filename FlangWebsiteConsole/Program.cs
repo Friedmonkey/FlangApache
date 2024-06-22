@@ -67,11 +67,11 @@ namespace FlangWebsiteConsole
 #if DEBUG
             args = new[]
             {
-"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvZXhhbXBsZXMvaW5kZXguZmxhbmc/Y3NEZWJ1Zw==",
-"--aW5kZXguZmxhbmc/Y3NEZWJ1Zw==",
-"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvZXhhbXBsZXMvaW5kZXguZmxhbmc/Y3NEZWJ1Zw==",
+"--QzoveGFtcHAvaHRkb2NzL3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvZXhhbXBsZXMvRmxhbmdDYWxsL2ZsYW5nQ2FsbC5mbGFuZz9jbGllbnRFdmVudD1DaGVja0lucHV0JmNzRGVidWc=",
+"--ZmxhbmdDYWxsLmZsYW5nP2NsaWVudEV2ZW50PUNoZWNrSW5wdXQmY3NEZWJ1Zw==",
+"--L3dlYmxlc3Nlbi9sZWVyamFhcjMvZmxhbmdBcGkvZXhhbXBsZXMvRmxhbmdDYWxsL2ZsYW5nQ2FsbC5mbGFuZz9jbGllbnRFdmVudD1DaGVja0lucHV0JmNzRGVidWc=",
 "--",
-"--eyJjc0RlYnVnIjoiIn0=",
+"--eyJjbGllbnRFdmVudCI6IkNoZWNrSW5wdXQiLCJjc0RlYnVnIjoiIn0=",
 "--W10=",
             };
 #endif
