@@ -218,6 +218,8 @@ namespace FlangWebsiteConsole
                     List<string> arguments = new List<string>();
                     while (Current != ')')
                     {
+                        while (char.IsWhiteSpace(Current)) Position++;
+
                         string argument = "";
                         while (Current != ',' && Current != ')')
                         {
@@ -341,6 +343,7 @@ namespace FlangWebsiteConsole
 
                         while (Current != ')')
                         {
+                            while (char.IsWhiteSpace(Current)) Position++;
                             string type = "";
                             string argument = "";
                             bool isArgName = false;
@@ -368,6 +371,8 @@ namespace FlangWebsiteConsole
                             }
                             function.arguments.Add((type, argument));
                             if (Current == ')') break;
+
+                            FinalClientCode += Current;
                             Position++; //skip ,
                         }
                         FinalClientCode += Current;
