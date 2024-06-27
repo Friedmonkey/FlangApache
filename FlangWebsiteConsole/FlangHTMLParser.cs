@@ -53,8 +53,9 @@ namespace FlangWebsiteConsole
                 "$varible"),
 
             new Macro("htmlcode",")>{0}<(flang","$htmlcode"){ DoubleDefined=true },
-            new Macro("put","return {{raw{{ {0} }}raw}};","$html"){ DoubleDefined=true },
-            new Macro("update","THIS_{0} = {0};","$var"),
+            new Macro("put","return {{raw{{ {0} }}raw}}","$html"){ DoubleDefined=true },
+            new Macro("update","THIS_{0} = {0}","$var"),
+            new Macro("withValue",".replace({0},{1})","$var", "$value"),
         };
 
         private string CallCodePreParser(string input)
