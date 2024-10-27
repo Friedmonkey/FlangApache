@@ -95,6 +95,43 @@ namespace FlangWebsiteConsole
                         function.name = functionName;
                     }
 
+                    FinalClientCode += Current;
+                    Position++; // skip (
+
+                    List<string> arguments = new List<string>();
+                    while (Current != ')')
+                    {
+                        while (char.IsWhiteSpace(Current)) Position++;
+                        string type = "";
+                        while (Current != ',' && Current != ')')
+                        {
+                            if (char.IsWhiteSpace(Current)) break;
+                            type += Current;
+                            Position++;
+                        }
+                        if (!char.IsWhiteSpace(Current))
+                        {
+                            throw new Exception($"expected typed argument type:{type} ending with a space but got {Current} instead.");
+                        }
+                        Position++; //skip space
+                        string argument = "";
+                        while (Current != ',' && Current != ')')
+                        {
+                            argument += Current;
+                            Position++;
+                        }
+                        arguments.Add(argument);
+                        FinalClientCode += type + " " + argument;
+                        if (Current == ')') break;
+                        FinalClientCode += ',';
+                        Position++; //skip ,
+                    }
+
+                    FinalClientCode += Current;
+                    Position++; //the closing )
+
+                    function.arguments = arguments;
+
                     while (Current != '<')
                     {
                         FinalClientCode += Current;
@@ -117,7 +154,6 @@ namespace FlangWebsiteConsole
                                 FinalClientCode += Current;
                                 Position++;
                             }
-
 
                             FinalClientCode += "return \"\";"; //return nothing in case they forgot
                             FinalClientCode += "}";
@@ -174,11 +210,24 @@ namespace FlangWebsiteConsole
                                 Position++; //skip )
                                 Position++; //skip >
                             }
+                            else
+                            {
+                                string whatWeGot = "";
+                                for (int i = 0; i < 20; i++)
+                                {
+                                    whatWeGot += Peek(i);
+                                }
+                                throw new Exception($"call pre got unexpected {whatWeGot} ");
+                            }
                         }
                         while (char.IsWhiteSpace(Current)) Position++;
                     }
 
-
+                    if (function.defeault.Trim().StartsWith("@call "))
+                    {
+                        function.defeault = function.defeault.Trim().Substring("@call ".Length);
+                        function.defeault = $"<(={function.defeault})>";
+                    }
                     FinalText += $$"""
             {{function.defeault}}
             </div>
@@ -236,8 +285,6 @@ namespace FlangWebsiteConsole
 
                     FinalText += Current;
                     Position++; //the closing )
-
-                    function.arguments = arguments;
 
                     if (!callFunctions.Any(cf => cf.name == function.name))
                         callFunctions.Add(function);
