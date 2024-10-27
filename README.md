@@ -17,15 +17,21 @@ add the following file somewhere accessable
 <?php
 $path = ltrim($_SERVER['DOCUMENT_ROOT'], '/').$_SERVER['REQUEST_URI'];
 
-//echo "you are visiting $path";
-
 $page = base64_encode(basename($path));
 $url = base64_encode($_SERVER['REQUEST_URI']);
 $content = base64_encode(file_get_contents('php://input'));
 $get = base64_encode(json_encode($_GET));
 $post = base64_encode(json_encode($_POST));
 
-$test = shell_exec("C:\\Users\\USERNAME\\source\\repos\\FlangWebsiteCore\\FlangWebsiteConsole\\bin\\Release\\net7.0\\FlangWebsiteConsole.exe --$path --$page --$url --$content --$get --$post");
+$pathEncoded = base64_encode($path);
+
+//for debugging enable this so you can copy these values and just run the project instead
+//if (isset($_GET['csDebug']) || isset($_GET['csdebug']))
+//    $test = "\"--$pathEncoded\",<br/>\"--$page\",<br/>\"--$url\",<br/>\"--$content\",<br/>\"--$get\",<br/>\"--$post\",";
+//else
+    $test = shell_exec("C:\\Users\\marti\\source\\repos\\FlangWebsiteCore\\FlangWebsiteConsole\\bin\\Release\\net7.0\\FlangWebsiteConsole.exe --$pathEncoded --$page --$url --$content --$get --$post");
+
+
 echo $test;
 
 ?>
