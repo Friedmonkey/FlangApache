@@ -1,0 +1,18 @@
+#use clientFlang
+#use macros
+
+<!-- #include "index.flang" -->
+
+#define Text($text) <h2>$text</h2>
+
+#define print($msg) console.log($msg)
+
+#define <MyButton/>($text) <button>$text</button>
+
+#define <MyDiv>($title)
+{{
+<h2>$title</h2>
+<div>
+    $body
+</div>
+}}

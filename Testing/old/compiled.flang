@@ -1,0 +1,109 @@
+<(flang
+                
+	void writeFile(string text)
+	{
+		File.write("log.txt", text);
+	}
+	string readFile()
+	{
+		return File.read("log.txt");
+	}
+
+	if (GET["clientEvent"] == "writeFile")
+	{                   
+
+		return "$clientEvent${POST.toString()}"$;
+	    string STR_text = POST["GENERATED_text"];
+	    string text = STR_text;
+		var output = writeFile(text);
+	    return "$clientEvent${output}"$;
+	}                    
+	if (GET["clientEvent"] == "readFile")
+	{                        
+		var output = readFile();
+	    return "$clientEvent${output}"$;
+	}            
+)>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flang test</title>
+	            <script>            	async function GENERATED_JS_writeFile(text)
+            	{
+            		<(flang
+            			if (URL.contains("?"))
+            				print("var url = \"{URL}&clientEvent=writeFile\";"$);
+            			else
+            				print("var url = \"{URL}?clientEvent=writeFile\";"$);
+            		)>
+
+
+                    // Define your POST parameters here
+                    let postData = {                        GENERATED_text: text,                    };
+                    
+                    // Send POST request
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'form/data'
+                        },
+                        body: postData
+                    });
+                    
+                    // Get the response body
+                    let responseData = await response.text();
+                    return responseData;
+            	}            	async function GENERATED_JS_readFile()
+            	{
+            		<(flang
+            			if (URL.contains("?"))
+            				print("var url = \"{URL}&clientEvent=readFile\";"$);
+            			else
+            				print("var url = \"{URL}?clientEvent=readFile\";"$);
+            		)>
+
+
+                    // Define your POST parameters here
+                    let postData = {                    };
+                    
+                    // Send POST request
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(postData)
+                    });
+                    
+                    // Get the response body
+                    let responseData = await response.text();
+                    return responseData;
+            	}            </script>
+	<script>
+		var input;
+		document.addEventListener('DOMContentLoaded', function() { const BIND_REF_input = document.getElementById('BIND_input'); function BIND_updateinput() { input = BIND_REF_input.value;} BIND_updateinput(); BIND_REF_input.addEventListener('input', BIND_updateinput); });;
+	</script>
+</head>
+<body>
+	<input id="BIND_input"/>
+	<button onclick="GENERATED_JS_writeFile(input)">Write to file</button>
+	<br/>
+	<p>text is:</p> 
+	<br/>
+	<p id="text"><(=readFile())></p>
+	<button onclick="readFile()">update</button>
+	<script>
+		async function readFile()
+		{
+			var field = document.getElementById("text");
+			var content = await GENERATED_JS_readFile();
+			field.innerText = content;
+		}
+	</script>
+</body>
+</html>
+
+

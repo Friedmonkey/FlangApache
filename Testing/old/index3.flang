@@ -1,0 +1,34 @@
+#include <clientFlang>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flang test</title>
+	<$clientEventHandeler$>
+</head>
+<body>
+	<button onclick="<(@writeFile)>">write to file</button>
+	<button onclick="clicked()">Read file</button>
+	<p id="output">"file contents"</p>
+	<script>
+		async function clicked()
+		{
+			let content = await <(@readFile)>;
+			let output = document.getElementById("output");
+			output.innerText = content;
+		}
+	</script>
+</body>
+</html>
+
+<(clientflang
+	string readFile()
+	{
+		return File.read("log.txt");
+	}
+	void writeFile()
+	{
+		File.write("log.txt", "Hello world!!!!!");
+	}
+)>

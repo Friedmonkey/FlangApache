@@ -1,0 +1,66 @@
+#use clientFlang
+#use macros
+#use call
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flang test</title>
+	<$clientEventHandeler$>
+	<script>
+		var input;
+		var input2;
+		@setBind(input);
+		@setBind(input2);
+		function getvalue(val)
+		{
+			alert(val);
+		}
+	</script>
+</head>
+<body>
+	<br/>
+	type ?text=[your text here]
+	in the url to set the text to write!
+	<br/>
+	<input @bind(input)/>
+	<button onclick="getvalue(input)">get value</button>
+	<br/>
+	<input @bind(input2)/>
+	<button onclick="getvalue(input2)">get value2</button>
+	<br/>
+	<button onclick="<(@writeFile)>()">Write text</button>
+	<br/>
+
+	<button onclick="@call readFile2()">Read text2</button>
+	@oncall readFile2()
+	<(default: @call readFile2())>
+	<{
+		return File.read("log.txt");
+	}>
+
+	<button onclick="readFile()">Read text</button>
+	<p id="output"><(=readFile())></p>
+	<script>
+		async function readFile()
+		{
+			var content = await <(@readFile)>();
+			var outputElement = @get("output");
+			outputElement.@set(content);
+		}
+	</script>
+</body>
+</html>
+
+<(clientFlang
+	string clientFlang readFile()
+	{
+		return File.read("log.txt");
+	}
+	void clientFlang writeFile()
+	{
+		File.write("log.txt", GET["text"]);
+	}
+)>

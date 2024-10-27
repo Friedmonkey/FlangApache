@@ -1,0 +1,121 @@
+#use macros
+#use clientFlang
+#use call
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login</title>
+    <script>
+        var username;
+        @setBind(username);
+
+        var password;
+        @setBind(password);
+
+        var loginMode = false;
+    </script>
+    <$clientEventHandeler$>
+    <(clientFlang
+        string database = "accounts.txt";
+        void CheckFolders()
+        {
+            if (!File.exists(database))
+            {
+                File.write(database, "admin:password\n");
+            }
+        }
+    )>
+</head>
+<body>
+    <div>
+        <p>Welcome to account</p>
+        <!-- <br/> -->
+        <p>username:</p>
+        <!-- <br/> -->
+        <input @bind(username)/>
+        <!-- <br/> -->
+        <p>password:</p>
+        <!-- <br/> -->
+        <input @bind(password)/>
+        <!-- <br/> -->
+    </div>
+    <br/>
+    <button onclick="@call Register(username, password, loginMode)">Register</button>
+    <br/>
+    <button onclick="@call Login(username, password)">Login</button>
+
+
+    @oncall Register(string username, string password)
+    <(default:<p style="opacity:.5;">Not registerd</p>)>
+    <{
+        CheckFolders();
+        bool exists = false;
+
+        var lines = File.readLines(database);
+        foreach (var line in lines)
+        {
+            if (line.startsWith(username+":"))
+            {
+                exists = true;
+                break;
+            }
+        }
+        if (exists)
+        {
+            @put((
+                <p style="color:red;">Account already exists</p>
+            ));
+        }
+        else
+        {
+            File.append(database, "{username}:{password}\n"$);
+            @put((
+                <p style="color:green;">Account created</p>
+            ));
+        }
+    }>
+
+    @oncall Login(string username, string password)
+    <(default:<p style="opacity:.5;">Not logged in</p>)>
+    <{
+        CheckFolders();
+        bool exists = false;
+        string existingPassword = "";
+
+        var lines = File.readLines(database);
+        foreach (var line in lines)
+        {
+            if (line.startsWith(username+":"))
+            {
+                existingPassword = line.split(":").last();
+                exists = true;
+                break;
+            }
+        }
+        if (exists)
+        {
+            if (password == existingPassword)
+            {
+                @put((
+                    <p style="color:green;">Login successful!</p>
+                ));
+            }
+            else
+            {
+                @put((
+                    <p style="color:red;">username or password is incorrect</p>
+                ));
+            }
+        }
+        else
+        {
+            @put((
+                <p style="color:red;">username or password is incorrect</p>
+            ));
+        }
+    }>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List example</title>
+</head>
+<body>
+    <(flang
+        class Ball
+        {
+            int radius;
+            Ball(int rad)
+            {
+                self.radius = rad;
+            }
+            void bounce()
+            {
+                self.radius++;
+                print("bounced {self.radius} high"$);
+            }
+        }
+
+        var ball = new Ball(5);
+
+        ball.bounce();
+
+        var json = JSON.serialize(ball);
+        print(json);
+
+        print("</br>");
+
+        var deserializedBall = JSON.deserializeClass(json, Ball);
+        deserializedBall.bounce();
+        print(deserializedBall);
+        print(deserializedBall);
+    )>
+</body>
+</html>

@@ -1,0 +1,29 @@
+#use macros
+
+#define code(($body))
+{{
+    <(flang
+        $body
+    )>
+}}
+
+#define <FriedButtonLegacy/>($text, $onclick) <button onclick="$onclick">$text</button>
+
+#define <FriedButton>($name, $text)
+{{
+    <button onclick="<(@$name)>()">$text</button>
+    <(clientFlang 
+        void clientFlang $name()  
+        {
+            $body
+        }        
+    )>
+}}
+
+#define <FriedDiv>($title)
+{{
+    <p>$title</p>
+    <div>
+        $body
+    </div>
+}}

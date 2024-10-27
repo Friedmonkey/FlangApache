@@ -1,0 +1,44 @@
+<(flang
+	void writeFile(string text)
+	{
+		File.write("log.txt", text);
+	}
+
+	if (GET["clientEvent"] == "readFile")
+	{
+		
+		var output = writeFile(POST["GENERATED_text"]);
+		return "$clientEvent${output}"$;
+	}
+)>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flang test</title>
+	<script>
+		async function GENERATED_JS_readFile(arg)
+		{
+			<(flang
+				if (URL.contains("?"))
+					print("return (await (await fetch(\"{URL}&clientEvent=readFile\")).text());"$);
+				else
+					print("return (await (await fetch(\"{URL}?clientEvent=readFile\")).text());"$);
+			)>
+		}
+	</script>
+</head>
+<body>
+	<button onclick="clicked()">Read file</button>
+	<p id="output">"file contents"</p>	
+			<script>
+			async function clicked()
+			{
+				let content = await GENERATED_JS_readFile("hello");
+				let output = document.getElementById("output");
+				output.innerText = content;
+			}
+		</script>
+</body>
+</html>

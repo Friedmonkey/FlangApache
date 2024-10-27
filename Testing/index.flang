@@ -1,0 +1,55 @@
+#include "index.h.flang"
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title><(=PAGE)></title>
+	<$clientEventHandeler$>
+	<script>
+		var input;
+		@setBind(input);
+	</script>
+</head>
+<body>
+	<a href="examples/index.flang">see examples</a>
+	</br>
+	<input @bind(input)/>
+	<button onclick="writeFile()">Write to file</button>
+	<br/>
+	<!-- <p>text is:</p>  -->
+	@Text(text is:)
+	<br/>
+
+	<p id="text">
+		#include "log.txt"
+	</p>
+	<button onclick="readFile()">update</button>
+	<script>
+		async function readFile()
+		{
+			var field = @get("text");
+			var content = await <(@readFile)>();
+			field.@set(content);
+		}
+		async function writeFile()
+		{
+			await <(@writeFile)>(input);
+			var field = @get("text");
+			field.@set(input);
+		}
+	</script>
+</body>
+</html>
+
+<(clientFlang
+	void clientFlang writeFile(string text)
+	{
+		File.write("log.txt", text);
+	}
+	string clientFlang readFile()
+	{
+		return File.read("log.txt");
+	}
+)>

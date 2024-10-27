@@ -1,0 +1,62 @@
+#use macros
+#use clientFlang
+
+#define @put(($html))
+{{
+    return {raw{
+        $html
+    }raw};
+}}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wasm test</title>
+    <script>
+    var lol;
+    @setBind(lol);
+    </script>
+    <$clientEventHandeler$>
+</head>
+<body>
+    <p>Password:</p>
+    <input @bind(lol)>
+    </br>
+    <button onclick="CheckInput(lol)">check check login</button>
+    </br>
+    <div id="CheckInput">
+        nothing yet
+    </div>
+    <script>
+        async function CheckInput(input)
+        {
+            var request = <(@CheckInput)>(input);
+            var output = document.getElementById("CheckInput");
+            output.innerHTML = "loading...";
+            var response = await request;
+            output.innerHTML = response;
+        }
+    </script>
+</body>
+</html>
+
+<(clientFlang
+
+    string clientFlang CheckInput(string text)
+    {
+        if (text == "secret")
+        {
+            return {raw{
+                access granted
+                }raw};
+        }
+        else
+        {
+            return {raw{
+                access denied
+                }raw};
+        }
+    }
+)>

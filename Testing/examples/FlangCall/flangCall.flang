@@ -1,0 +1,42 @@
+#use macros
+#use call
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wasm test</title>
+    <script>
+        var lol;
+        @setBind(lol);
+    </script>
+    <$clientEventHandeler$>
+</head>
+<body>
+    <p>Password:</p>
+    <input @bind(lol)>
+    </br>
+    <button onclick="@call CheckInput(lol)">check check login</button>
+    </br>
+
+    @oncall CheckInput(string text)
+    <(default:nothing)>
+    <(load:Loading...)>
+    <{
+        //password is stored on server, never visible to client
+        if (text == "secret")
+        {
+            @put((
+                access granted
+            ))
+        }
+        else
+        {
+            @put((
+                access denied
+            ))
+        }
+    }>
+</body>
+</html>

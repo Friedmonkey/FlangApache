@@ -1,0 +1,58 @@
+#use macros
+#use printedHtml
+
+#define <FriedList/>($items)
+{{
+    <(flang
+        @htmlcode(<list>)
+        foreach (var item in $items)
+        {
+            @htmlcode((
+                <li>
+                    <(=item.title)>
+                </li>
+            ))
+        }
+        @htmlcode(</list>)
+    )>
+
+}}
+
+#define div(($content)) 
+{{
+    <div style="background-color:cornflowerblue;">
+        $content
+    </div>
+}}
+#define tag($tag,$content) <$tag>$content</$tag>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro example</title>
+    @div((
+        Hello world
+        @tag(h2,Hello world)
+    ))
+</head>
+<body>
+#define new($str) new acord($str)
+<(flang
+    class acord
+    {
+        string title;
+        acord(string title)
+        {
+            self.title = title;
+        }
+    }
+    var lst = [@new("hi"),@new("bye"),@new("world")];
+    //print(lst);
+)>
+
+<FriedList $items="lst" />
+
+</body>
+</html>

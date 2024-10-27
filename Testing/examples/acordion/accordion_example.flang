@@ -1,0 +1,33 @@
+#use macros
+
+#include "accordion.flang"
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <(flang
+        //var myList = List.create();
+        //myList.add(new acord("a1", "lorum ipsum dolor sit amet") );
+        //myList.add(new acord("a2", "lorum ipsum dolor sit amet") );
+        //myList.add(new acord("a3", "lorum ipsum dolor sit amet") );
+        var myList = 
+        [
+            new acord("a1", "lorum ipsum dolor sit amet"),
+            new acord("a2", "lorum ipsum dolor sit amet"),
+            new acord("a3", "lorum ipsum dolor sit amet")
+        ];
+    )>
+
+    <!-- 
+        might be confusing but this is litterly just a macro it doesn't copy the list at all
+        litterly all it does is take the name of the varible and the macro copies the macro context 
+        and replaces certain words so it takes the varible name and hopes its in scope (it will be)
+      -->
+    <accordion $list="myList"/>
+</body>
+</html>

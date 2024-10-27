@@ -1,0 +1,46 @@
+#use macros
+#use printedHtml
+
+#include "FriedButton.flang"
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><(=PAGE)></title>
+</head> 
+<body>
+
+<FriedButton $text="Hello world" $onclick="alert('Hello world')"/>
+
+<FriedDiv $title="Hey world">
+    wassup everyone this is my frieddiv
+</FriedDiv>
+
+<(flang
+    //for (int i = 0; i < 10; i++)
+    int i = 0;
+    repeat!(10 times)
+    {
+        if (i%2 == 0) 
+        {
+            @htmlcode((
+                <(=i)> is even
+                <br/>
+            ))
+        }
+        else
+        {
+            @htmlcode((
+                <(=i)> is odd
+                <br/>
+            ))
+        }
+        i++;
+    }
+
+)>
+
+</body>
+</html>

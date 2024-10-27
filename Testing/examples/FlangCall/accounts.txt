@@ -1,0 +1,6 @@
+admin:password
+monkey:balls
+fried:monkey
+lol:lol
+loll:loll
+test:testlol

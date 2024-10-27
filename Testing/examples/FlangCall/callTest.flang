@@ -1,0 +1,42 @@
+#use macros
+#use call
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        var visible = false;
+    </script>
+    <$clientEventHandeler$>
+</head>
+<body>
+    
+    <button onclick="@call visibility(visible)">toggle</button>
+
+
+    @oncall visibility(bool visable)
+    <(default:nothing)>
+    <(loading:loading...)>
+    <(javascript:
+        visible = !visible; //toggle item
+        @update(visible) //update the call
+    )>
+    <{
+        if (visable)
+        {
+            @put((
+                <h2>I am visible</h2>
+            ))
+        }
+        else
+        {
+            @put((
+                <h5 style="opacity:.5;">i should not be visable, but i am</h5>
+            ))
+        }
+    }>
+</body>
+</html>

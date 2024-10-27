@@ -1,0 +1,48 @@
+#use clientFlang
+#use macros
+
+#define Text($text) <h2>$text</h2>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flang test</title>
+	<$clientEventHandeler$>
+	<script>
+		var input;
+		@setBind(input);
+	</script>
+</head>
+<body>
+	<input @bind(input)/>
+	<button onclick="<(@writeFile)>(input)">Write to file</button>
+	<br/>
+	<!-- <p>text is:</p>  -->
+	@Text(text is:)
+	<br/>
+	
+	<p id="text"><(=readFile())></p>
+	<button onclick="readFile()">update</button>
+	<script>
+		async function readFile()
+		{
+			var field = @get("text");
+			var content = await <(@readFile)>();
+			field.@set(content);
+		}
+	</script>
+</body>
+</html>
+
+<(clientFlang
+	void clientFlang writeFile(string text)
+	{
+		File.write("log.txt", text);
+	}
+	string clientFlang readFile()
+	{
+		return File.read("log.txt");
+	}
+)>

@@ -1,0 +1,101 @@
+#use printedHtml
+
+#define getAll($class) document.querySelectorAll($class)
+#define print($msg) console.log($msg)
+<script>
+
+document.addEventListener("DOMContentLoaded", (event) => {
+    const accordion = @getAll(".accordion__item");
+    @print(accordion);
+
+    accordion.forEach(function (title){
+        title.addEventListener('click', function(e){
+            // let isOpen = this.getAttribute('data-open');
+            var parentItem = this.parentNode;
+            @print(this);
+            
+            var isOpen = this.getAttribute('data-open') === 'true';
+            this.setAttribute('data-open', isOpen ? 'false' : 'true');
+        });
+    })
+
+});
+</script>
+
+<style>
+body{
+    font-family: system-ui;
+}
+.accordion{
+    .accordion__wrapper{
+    
+        .accordion__item{
+            padding: 1em;
+            background-color: #1e1e1e;
+            color: #e1e1e1;
+
+            .accordion__title{
+                cursor: pointer;
+            }
+
+            .accordion__body{
+                display: grid;
+                grid-template-rows: 0fr;
+                transition: .2s;
+
+                & > div{
+                    overflow: hidden;
+                }
+            }
+        }
+
+        .accordion__item[data-open=true] .accordion__body{
+            grid-template-rows: 1fr;
+        }
+    }
+}
+</style>
+
+<(flang
+    class acord
+    {
+        string title;
+        string text;
+
+        acord(string title, string text )
+        {
+            self.title = title;
+            self.text = text;
+        }
+    }
+)>
+
+#define <accordion/>($list)
+{{
+    <div class="accordion">
+        <div class="accordion__wrapper">
+
+            <(flang
+            foreach (var item in $list)
+            {
+                @htmlcode((
+                <div class="accordion__item" data-open="false">
+                    <div class="accordion__title">
+                        <h2><(=item.title)> </h2>
+                    </div>
+
+                    <div class="accordion__body">
+                        <div>
+                            <div>
+                                <(=item.text)>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ))
+            }
+            )>
+
+        </div>
+    </div>
+}}
