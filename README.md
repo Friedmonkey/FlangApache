@@ -144,6 +144,7 @@ those are the basics but there are also macros
 }}
 ```
 wich you can use (in flang context only) like this:
+
 `@printLine("Hello world")`
 
 you can also define macro components
@@ -157,6 +158,7 @@ you can also define macro components
 }}
 ```
 when defining a component macro with a body the argument `$body` is the body and will be added automatically
+
 use like this (in html context only)
 ```
 <CoolDiv $title="Cool title">
@@ -300,7 +302,9 @@ but it definitly makes it much easier
 
 
 to define a call you use 
+
 `@oncall ExampleCall(string name)`
+
 followed by the body of the call
 ```
 <{
@@ -312,8 +316,11 @@ followed by the body of the call
 the `@put` and `@withValue` macros also exist for these calls to make returning easier 
 
 and is the prefferd syntax for when you want to return more html
+
 `@put((anything here))` = `return {{raw{{ {0} }}raw}}`
+
 `@withValue(this, isThis)` = `.replace({0},{1})`
+
 
 ```
 <{
