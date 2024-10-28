@@ -64,7 +64,7 @@ basic flang context:
 	print("Hello world");
 )>
 ```
-or if you just want to print something instead of using it fully you can DOCUMENT_ROOT
+or if you just want to print something instead of using it fully you can do this:
 ```
 <(="Hello world")>
 ```
@@ -98,6 +98,22 @@ here is a basic example
 </html>
 ```
 
+will output:
+
+```
+num 1
+num 2
+num 3
+num 4
+num 5
+num 6
+num 7
+num 8
+num 9
+num 10
+the message was: hello world
+```
+
 it shows basic for loop and the printing system, also how to use GET to get stuff from the GET request/url
 the default varibles you have access to are
 - PAGE
@@ -107,11 +123,17 @@ the default varibles you have access to are
 - POST
 
 for our little example the values would be:
+
 PAGE=`readme.flang?message=hello%20world`
+
 URL=`...flangapi/examples/readme.flang?message=hello%20world`
+
 CONTENT=``
+
 GET=`{ message: hello world }`
+
 POST=`{ }`
+
 
 those are the basics but there are also macros
 ```
@@ -157,8 +179,11 @@ and then you would call it like this
 `<CoolDiv $title="Cool title" />`
 
 flang code runs on the server NEVER on the client
+
 but flang has auto-api to abstract alot and make it SEEM like it runs on the client
+
 instead of `<(flang` you use `<(clientFlang`
+
 but you also have to opt in and put `#use clientFlang` and add `<$clientEventHandeler$>` in the head somewhere
 
 here is basic example of reading and writing to a text file using clientFlang
@@ -231,6 +256,7 @@ we normally cant write files from client and flang cant even run client-side so 
 
 
 in newer versions i have also added `calls` wich do even more abstraction 
+
 and also handle the the html element and generates a bit more javascript
 
 a call generates a clientEvent and an htmlElemnt to hold the result of the event/call
@@ -269,6 +295,7 @@ you can do it like this using calls:
 ```
 
 this is pretty much syntax suger because it pretty much generates the code above
+
 but it definitly makes it much easier
 
 
@@ -283,6 +310,7 @@ followed by the body of the call
 ```
 
 the `@put` and `@withValue` macros also exist for these calls to make returning easier 
+
 and is the prefferd syntax for when you want to return more html
 `@put((anything here))` = `return {{raw{{ {0} }}raw}}`
 `@withValue(this, isThis)` = `.replace({0},{1})`
@@ -300,18 +328,29 @@ and is the prefferd syntax for when you want to return more html
 
 for calls you also have a few extra things
 like its default value
-<(default: call hasnt been called yet, awaiting value)>
+
+`<(default: call hasnt been called yet, awaiting value)>`
 normally this is just plaintext
 however if you prefix it with `@call`
+
 its still plain text but gets put inbetween `<(=` and `)>`
+
 making it so you can use flang again
+
 so if you want its default value to be the result you can call it initialy like this
-<(default: @call ExampleCall("jhonn do"))>
+
+`<(default: @call ExampleCall("jhonn do"))>`
+
 if you want to execute javascript before the actual call happens use 
+
 `<(javascript:alert("i have been called"))>` or `<(jsbefore:alert("i have been called"))>`
+
 and if you want javascript after use 
+
 `<(jsafter:alert("i had been called"))>`
+
 if you want some value WHILE its loading use
+
 `<(loading:loading...)>` or `<(load:please wait..)>`
 
 
