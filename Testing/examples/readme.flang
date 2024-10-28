@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flang test</title>
+</head>
+<body>
+    <(flang
+        for (int i = 1; i <= 10; i++)
+        {
+            print("num "+i);
+            print("</br>");
+        }
+
+        //use localhost/readme.flang?message=hello world
+        var message = GET["message"];
+    )>
+    <p>
+        the message was: <(=message)>
+    </p>
+</body>
+</html>

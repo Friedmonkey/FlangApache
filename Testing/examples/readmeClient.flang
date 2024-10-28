@@ -1,0 +1,63 @@
+<!-- opt in to clientFlang and enable the usage macros, 
+a few predefined macros
+@setBind prepare var to be binded
+@bind make input bind varible
+@get document.getElementById
+@set innerText =
+-->
+#use clientFlang 
+#use macros
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>clientFlang readme</title>
+    <!-- the client code needs an entry point to put script tags ig generates you can define where it puts them -->
+    <$clientEventHandeler$>
+    <script>
+        //declare and prepare input to be binded
+        var input;
+        @setBind(input);
+    </script>
+</head>
+<body>
+    <!-- whenever the input changes itll update the input varible -->
+    <input @bind(input)/>
+    <!-- on this button click call client method CLIENT_writeFile -->
+    <button onclick="<(@CLIENT_writeFile)>(input)">Write to file</button>
+    <br/>
+    <p>text is:</p> 
+    <!-- client code is also availiby from server
+     so we call the same readfile on startup to have initial value -->
+    <p id="text"><(=CLIENT_readFile())></p>
+
+    <!-- when we update we have to update the element so we call js method first -->
+    <button onclick="readFile()">update</button>
+    <script>
+        async function readFile()
+        {
+            //we get the element and call the client method CLIENT_readFile wich we have to await
+            var field = @get("text");
+            var content = await <(@CLIENT_readFile)>();
+            field.@set(content);
+        }
+    </script>
+</body>
+</html>
+
+<!-- clientFlang code wich runs on server but gets auto api implemented for it
+ so it can be called easily from client with a ton of abstractions
+    call like this <(@METHODNAME)>(javascriptVaribleName)
+  -->
+<(clientFlang
+    void clientFlang CLIENT_writeFile(string text)
+    {
+        File.write("log.txt", text);
+    }
+    string clientFlang CLIENT_readFile()
+    {
+        return File.read("log.txt");
+    }
+)>

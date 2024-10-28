@@ -182,7 +182,7 @@ namespace FlangWebsiteConsole
                                     load += Current;
                                     Position++;
                                 }
-                                function.load = load;
+                                function.load = load.Replace("\\","\\\\").Replace("\"","\\\"");
                                 Position++; //skip )
                                 Position++; //skip >
                             }

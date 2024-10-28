@@ -32,24 +32,20 @@
 <body>
     <div>
         <p>Welcome to account</p>
-        <!-- <br/> -->
         <p>username:</p>
-        <!-- <br/> -->
         <input @bind(username)/>
-        <!-- <br/> -->
         <p>password:</p>
-        <!-- <br/> -->
         <input @bind(password)/>
-        <!-- <br/> -->
     </div>
     <br/>
-    <button onclick="@call Register(username, password, loginMode)">Register</button>
+    <button onclick="@call Register(username, password)">Register</button>
     <br/>
     <button onclick="@call Login(username, password)">Login</button>
 
 
     @oncall Register(string username, string password)
     <(default:<p style="opacity:.5;">Not registerd</p>)>
+    <(load:<p style="opacity:.6;">Checking username..</p>)>
     <{
         CheckFolders();
         bool exists = false;
@@ -80,6 +76,7 @@
 
     @oncall Login(string username, string password)
     <(default:<p style="opacity:.5;">Not logged in</p>)>
+    <(load:<p style="opacity:.6;">Checking username..</p>)>
     <{
         CheckFolders();
         bool exists = false;
